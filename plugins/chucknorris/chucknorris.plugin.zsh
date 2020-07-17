@@ -6,6 +6,19 @@ CHUCKNORRIS_PLUGIN_DIR=${0:h}
 
 () {
 local DIR=$CHUCKNORRIS_PLUGIN_DIR/fortunes
+# check if plugin directory is writeable
+if [[ ! -w $DIR ]]; then
+  # check for writable cache directory
+  [[ -w $ZSH_CACHE_DIR ]] && [[ -d $ZSH_CACHE_DIR/chucknorris ]] || mkdir $ZSH_CACHE_DIR/chucknorris
+  if [[ ! -d $ZSH_CACHE_DIR/chucknorris ]] || [[ ! -w $ZSH_CACHE_DIR/chucknorris ]]; then
+    echo "[oh-my-zsh] cannot generate chucknorris.dat; neither chucknorris plugin directory nor cache directory writable" >&2
+    return 1
+  fi
+  local OLD_DIR=$DIR
+  DIR=$ZSH_CACHE_DIR/chucknorris
+  # create link to fortune file if nessecarry
+  [[ ! -e $DIR/chucknorris ]] && ln -sf $OLD_DIR/chucknorris $DIR/chucknorris 
+fi
 if [[ ! -f $DIR/chucknorris.dat ]] || [[ $DIR/chucknorris.dat -ot $DIR/chucknorris ]]; then
   # For some reason, Cygwin puts strfile in /usr/sbin, which is not on the path by default
   local strfile=strfile
